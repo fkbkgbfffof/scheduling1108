@@ -1,0 +1,1928 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+>
+
+<title>Calendar</title>
+
+<style>
+
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html,
+body{
+  width:100%;
+  min-height:100%;
+  background:#080808;
+  color:#fff;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Display",
+    "SF Pro Text",
+    Arial,
+    sans-serif;
+}
+
+body{
+  overflow-x:hidden;
+}
+
+button{
+  font-family:inherit;
+  border:none;
+}
+
+
+/* =========================
+   MAIN
+========================= */
+
+.app{
+  width:100%;
+  min-height:100dvh;
+
+  background:#080808;
+
+  padding:
+    calc(16px + env(safe-area-inset-top))
+    15px
+    calc(24px + env(safe-area-inset-bottom));
+}
+
+
+/* =========================
+   CALENDAR
+========================= */
+
+.calendar-card{
+  width:100%;
+
+  padding:16px;
+
+  border-radius:24px;
+
+  background:#111;
+
+  border:1px solid #242424;
+
+  box-shadow:
+    0 20px 60px rgba(0,0,0,.45);
+}
+
+
+.month-nav{
+  display:flex;
+
+  align-items:center;
+  justify-content:space-between;
+
+  margin-bottom:18px;
+}
+
+.month-title{
+  font-size:22px;
+  font-weight:800;
+
+  letter-spacing:-.5px;
+}
+
+.nav-button{
+  width:38px;
+  height:38px;
+
+  border-radius:50%;
+
+  border:1px solid #292929;
+
+  background:#191919;
+
+  color:#fff;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+
+  font-size:22px;
+
+  cursor:pointer;
+}
+
+.nav-button:active{
+  background:#ff1738;
+  border-color:#ff1738;
+}
+
+
+/* =========================
+   WEEKDAYS
+========================= */
+
+.weekdays{
+  display:grid;
+
+  grid-template-columns:
+    repeat(7,1fr);
+
+  gap:5px;
+
+  margin-bottom:7px;
+}
+
+.weekday{
+  text-align:center;
+
+  color:#666;
+
+  font-size:9px;
+
+  font-weight:750;
+}
+
+
+/* =========================
+   GRID
+========================= */
+
+.calendar-grid{
+  display:grid;
+
+  grid-template-columns:
+    repeat(7,1fr);
+
+  gap:6px;
+}
+
+
+/* =========================
+   DAY
+========================= */
+
+.day{
+  position:relative;
+
+  min-width:0;
+
+  aspect-ratio:1 / 1.08;
+
+  border-radius:14px;
+
+  border:1px solid #242424;
+
+  background:#151515;
+
+  overflow:hidden;
+
+  cursor:pointer;
+
+  transition:
+    transform .15s,
+    border-color .15s;
+}
+
+.day:active{
+  transform:scale(.94);
+}
+
+.day.empty{
+  opacity:0;
+  pointer-events:none;
+}
+
+.day-number{
+  position:absolute;
+
+  z-index:4;
+
+  top:7px;
+  left:8px;
+
+  font-size:10px;
+
+  font-weight:750;
+
+  color:#aaa;
+}
+
+.day.empty-date{
+  background:#101010;
+  border-color:#1d1d1d;
+}
+
+.day.empty-date .day-number{
+  color:#777;
+}
+
+
+/* =========================
+   BOOKED PHOTO
+========================= */
+
+.day.booked{
+  border-color:#3a151b;
+
+  background:#160b0d;
+}
+
+.day.booked:after{
+  content:"";
+
+  position:absolute;
+
+  inset:0;
+
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(0,0,0,0) 45%,
+      rgba(0,0,0,.72) 100%
+    );
+}
+
+.day-photo{
+  width:100%;
+  height:100%;
+
+  object-fit:cover;
+
+  display:block;
+}
+
+.day-girl-name{
+  position:absolute;
+
+  z-index:5;
+
+  left:7px;
+  right:5px;
+
+  bottom:6px;
+
+  color:#fff;
+
+  font-size:8px;
+
+  font-weight:800;
+
+  white-space:nowrap;
+
+  overflow:hidden;
+
+  text-overflow:ellipsis;
+}
+
+.red-line{
+  position:absolute;
+
+  z-index:6;
+
+  left:6px;
+  right:6px;
+
+  bottom:3px;
+
+  height:2px;
+
+  border-radius:5px;
+
+  background:#ff1738;
+}
+
+
+/* =========================
+   SCREEN
+========================= */
+
+.screen{
+  position:fixed;
+
+  z-index:100;
+
+  inset:0;
+
+  width:100%;
+  height:100dvh;
+
+  background:#080808;
+
+  padding:
+    calc(18px + env(safe-area-inset-top))
+    16px
+    calc(22px + env(safe-area-inset-bottom));
+
+  overflow-y:auto;
+
+  opacity:0;
+
+  pointer-events:none;
+
+  transform:translateY(20px);
+
+  transition:
+    opacity .25s,
+    transform .25s;
+}
+
+.screen.open{
+  opacity:1;
+
+  pointer-events:auto;
+
+  transform:translateY(0);
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+.screen-header{
+  display:flex;
+
+  align-items:center;
+
+  gap:12px;
+
+  margin-bottom:25px;
+}
+
+.back{
+  width:40px;
+  height:40px;
+
+  flex:0 0 40px;
+
+  border-radius:50%;
+
+  background:#171717;
+
+  border:1px solid #292929;
+
+  color:#fff;
+
+  font-size:20px;
+
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+}
+
+.screen-title{
+  font-size:24px;
+  font-weight:850;
+
+  letter-spacing:-.5px;
+}
+
+.screen-subtitle{
+  margin-top:4px;
+
+  color:#777;
+
+  font-size:11px;
+}
+
+
+/* =========================
+   GIRLS
+========================= */
+
+.girls{
+  display:grid;
+
+  grid-template-columns:
+    repeat(2,1fr);
+
+  gap:11px;
+}
+
+.girl-card{
+  position:relative;
+
+  height:310px;
+
+  border-radius:22px;
+
+  overflow:hidden;
+
+  border:1px solid #282828;
+
+  background:#121212;
+
+  cursor:pointer;
+
+  transition:
+    transform .15s,
+    border-color .2s;
+}
+
+.girl-card:active{
+  transform:scale(.97);
+}
+
+.girl-card.selected{
+  border:
+    2px solid #ff1738;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(255,23,56,.12);
+}
+
+.girl-photo{
+  width:100%;
+  height:100%;
+
+  object-fit:cover;
+
+  display:block;
+}
+
+.girl-card:after{
+  content:"";
+
+  position:absolute;
+
+  inset:0;
+
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(0,0,0,0) 45%,
+      rgba(0,0,0,.82) 100%
+    );
+}
+
+.girl-info{
+  position:absolute;
+
+  z-index:4;
+
+  left:13px;
+  right:13px;
+
+  bottom:14px;
+}
+
+.girl-name{
+  font-size:18px;
+
+  font-weight:850;
+}
+
+.girl-status{
+  display:none;
+}
+
+.selected-mark{
+  position:absolute;
+
+  z-index:10;
+
+  top:11px;
+  right:11px;
+
+  width:30px;
+  height:30px;
+
+  border-radius:50%;
+
+  background:#ff1738;
+
+  color:#fff;
+
+  display:none;
+
+  align-items:center;
+  justify-content:center;
+
+  font-size:16px;
+}
+
+.girl-card.selected
+.selected-mark{
+  display:flex;
+}
+
+
+/* =========================
+   TIME
+========================= */
+
+.time-list{
+  display:grid;
+
+  grid-template-columns:
+    repeat(2,1fr);
+
+  gap:9px;
+}
+
+.time-button{
+  height:55px;
+
+  border-radius:15px;
+
+  background:#151515;
+
+  border:1px solid #292929;
+
+  color:#fff;
+
+  font-size:13px;
+
+  font-weight:750;
+
+  cursor:pointer;
+
+  transition:.15s;
+}
+
+.time-button:active{
+  transform:scale(.96);
+}
+
+.time-button.selected{
+  background:#ff1738;
+
+  border-color:#ff1738;
+}
+
+
+/* =========================
+   GET INSIGHTS
+========================= */
+
+.confirm{
+  width:100%;
+
+  height:58px;
+
+  margin-top:18px;
+
+  border-radius:18px;
+
+  background:#ff1738;
+
+  color:#fff;
+
+  font-size:14px;
+
+  font-weight:850;
+
+  letter-spacing:.4px;
+
+  box-shadow:
+    0 12px 30px
+    rgba(255,23,56,.22);
+
+  cursor:pointer;
+
+  opacity:.35;
+
+  pointer-events:none;
+
+  transition:.2s;
+}
+
+.confirm.ready{
+  opacity:1;
+
+  pointer-events:auto;
+}
+
+.confirm:active{
+  transform:scale(.98);
+}
+
+
+/* =========================
+   DETAIL
+========================= */
+
+.detail{
+  display:flex;
+
+  flex-direction:column;
+
+  align-items:center;
+
+  text-align:center;
+}
+
+.detail-photo{
+  width:210px;
+  height:270px;
+
+  border-radius:24px;
+
+  object-fit:cover;
+
+  border:1px solid #292929;
+
+  box-shadow:
+    0 20px 50px
+    rgba(0,0,0,.45);
+}
+
+.detail-name{
+  margin-top:18px;
+
+  font-size:26px;
+
+  font-weight:850;
+}
+
+.detail-time{
+  margin-top:8px;
+
+  color:#ff1738;
+
+  font-size:15px;
+
+  font-weight:800;
+}
+
+.detail-date{
+  margin-top:5px;
+
+  color:#777;
+
+  font-size:11px;
+}
+
+.close-screen{
+  width:100%;
+
+  height:55px;
+
+  margin-top:25px;
+
+  border-radius:17px;
+
+  background:#191919;
+
+  border:1px solid #292929;
+
+  color:#fff;
+
+  font-weight:750;
+
+  font-size:13px;
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media(max-width:360px){
+
+  .calendar-card{
+    padding:12px;
+  }
+
+  .calendar-grid{
+    gap:4px;
+  }
+
+  .day{
+    border-radius:11px;
+  }
+
+  .girl-card{
+    height:270px;
+  }
+
+}
+
+</style>
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     CALENDAR
+===================================================== -->
+
+<main class="app">
+
+  <section class="calendar-card">
+
+    <div class="month-nav">
+
+      <button
+        class="nav-button"
+        id="prevMonth"
+      >
+        ‹
+      </button>
+
+      <div
+        class="month-title"
+        id="monthTitle"
+      ></div>
+
+      <button
+        class="nav-button"
+        id="nextMonth"
+      >
+        ›
+      </button>
+
+    </div>
+
+
+    <div class="weekdays">
+
+      <div class="weekday">SUN</div>
+      <div class="weekday">MON</div>
+      <div class="weekday">TUE</div>
+      <div class="weekday">WED</div>
+      <div class="weekday">THU</div>
+      <div class="weekday">FRI</div>
+      <div class="weekday">SAT</div>
+
+    </div>
+
+
+    <div
+      class="calendar-grid"
+      id="calendarGrid"
+    ></div>
+
+  </section>
+
+</main>
+
+
+<!-- =====================================================
+     AVAILABLE GIRLS
+===================================================== -->
+
+<section
+  class="screen"
+  id="girlsScreen"
+>
+
+  <div class="screen-header">
+
+    <button
+      class="back"
+      id="backFromGirls"
+    >
+      ‹
+    </button>
+
+    <div>
+
+      <div class="screen-title">
+        Choose
+      </div>
+
+      <div
+        class="screen-subtitle"
+        id="availableDate"
+      ></div>
+
+    </div>
+
+  </div>
+
+
+  <div
+    class="girls"
+    id="girlsList"
+  >
+
+    <div
+      class="girl-card"
+      data-name="Anastasia"
+      data-photo="https://i.ibb.co/SXXFXs0z/10.jpg"
+    >
+
+      <img
+        class="girl-photo"
+        src="https://i.ibb.co/SXXFXs0z/10.jpg"
+        alt="Anastasia"
+      >
+
+      <div class="selected-mark">
+        ✓
+      </div>
+
+      <div class="girl-info">
+
+        <div class="girl-name">
+          Anastasia
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div
+      class="girl-card"
+      data-name="Victoria"
+      data-photo="https://i.ibb.co/1NvN9cJ/11.jpg"
+    >
+
+      <img
+        class="girl-photo"
+        src="https://i.ibb.co/1NvN9cJ/11.jpg"
+        alt="Victoria"
+      >
+
+      <div class="selected-mark">
+        ✓
+      </div>
+
+      <div class="girl-info">
+
+        <div class="girl-name">
+          Victoria
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <button
+    class="confirm"
+    id="chooseGirlButton"
+  >
+    CHOOSE TIME
+  </button>
+
+</section>
+
+
+<!-- =====================================================
+     TIME
+===================================================== -->
+
+<section
+  class="screen"
+  id="timeScreen"
+>
+
+  <div class="screen-header">
+
+    <button
+      class="back"
+      id="backFromTime"
+    >
+      ‹
+    </button>
+
+    <div>
+
+      <div class="screen-title">
+        Choose a time
+      </div>
+
+      <div
+        class="screen-subtitle"
+        id="selectedGirlName"
+      ></div>
+
+    </div>
+
+  </div>
+
+
+  <div
+    class="time-list"
+  >
+
+    <button class="time-button">
+      10:00 AM
+    </button>
+
+    <button class="time-button">
+      11:30 AM
+    </button>
+
+    <button class="time-button">
+      1:00 PM
+    </button>
+
+    <button class="time-button">
+      2:30 PM
+    </button>
+
+    <button class="time-button">
+      4:00 PM
+    </button>
+
+    <button class="time-button">
+      5:30 PM
+    </button>
+
+    <button class="time-button">
+      7:00 PM
+    </button>
+
+    <button class="time-button">
+      8:30 PM
+    </button>
+
+  </div>
+
+
+  <button
+    class="confirm"
+    id="confirmMeeting"
+  >
+    GET INSIGHTS
+  </button>
+
+</section>
+
+
+<!-- =====================================================
+     MEETING DETAIL
+===================================================== -->
+
+<section
+  class="screen"
+  id="detailScreen"
+>
+
+  <div class="screen-header">
+
+    <button
+      class="back"
+      id="backFromDetail"
+    >
+      ‹
+    </button>
+
+    <div>
+
+      <div class="screen-title">
+        Meeting
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div class="detail">
+
+    <img
+      class="detail-photo"
+      id="detailPhoto"
+      src=""
+      alt=""
+    >
+
+    <div
+      class="detail-name"
+      id="detailName"
+    ></div>
+
+    <div
+      class="detail-time"
+      id="detailTime"
+    ></div>
+
+    <div
+      class="detail-date"
+      id="detailDate"
+    ></div>
+
+  </div>
+
+
+  <button
+    class="close-screen"
+    id="closeDetail"
+  >
+    BACK TO CALENDAR
+  </button>
+
+</section>
+
+
+<script>
+
+/* =========================
+   DATA
+========================= */
+
+const bookedGirls = [
+
+  {
+    name:"Sonya",
+    photo:"https://i.ibb.co/5hy8NkgM/8.jpg"
+  },
+
+  {
+    name:"Jessica",
+    photo:"https://i.ibb.co/FLPpwmDF/Melike-Sayg-n.jpg"
+  },
+
+  {
+    name:"Melania",
+    photo:"https://i.ibb.co/Z6KcqFbR/9.jpg"
+  }
+
+];
+
+
+const meetingTimes = [
+
+  "10:00 AM",
+  "11:30 AM",
+  "1:00 PM",
+  "2:30 PM",
+  "4:00 PM",
+  "5:30 PM",
+  "7:00 PM",
+  "8:30 PM"
+
+];
+
+
+/* =========================
+   ELEMENTS
+========================= */
+
+const calendarGrid =
+  document.getElementById(
+    "calendarGrid"
+  );
+
+const monthTitle =
+  document.getElementById(
+    "monthTitle"
+  );
+
+const prevMonth =
+  document.getElementById(
+    "prevMonth"
+  );
+
+const nextMonth =
+  document.getElementById(
+    "nextMonth"
+  );
+
+const girlsScreen =
+  document.getElementById(
+    "girlsScreen"
+  );
+
+const timeScreen =
+  document.getElementById(
+    "timeScreen"
+  );
+
+const detailScreen =
+  document.getElementById(
+    "detailScreen"
+  );
+
+const availableDate =
+  document.getElementById(
+    "availableDate"
+  );
+
+const selectedGirlName =
+  document.getElementById(
+    "selectedGirlName"
+  );
+
+const chooseGirlButton =
+  document.getElementById(
+    "chooseGirlButton"
+  );
+
+const confirmMeeting =
+  document.getElementById(
+    "confirmMeeting"
+  );
+
+const detailPhoto =
+  document.getElementById(
+    "detailPhoto"
+  );
+
+const detailName =
+  document.getElementById(
+    "detailName"
+  );
+
+const detailTime =
+  document.getElementById(
+    "detailTime"
+  );
+
+const detailDate =
+  document.getElementById(
+    "detailDate"
+  );
+
+
+/* =========================
+   STATE
+========================= */
+
+let currentDate = new Date();
+
+let currentMonth =
+  currentDate.getMonth();
+
+let currentYear =
+  currentDate.getFullYear();
+
+let selectedDate = null;
+
+let selectedGirl = null;
+
+let selectedTime = null;
+
+
+/* =========================
+   MONTHS
+========================= */
+
+const months = [
+
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December"
+
+];
+
+
+/* =========================
+   RANDOM BOOKED DAYS
+========================= */
+
+const bookedDates = {};
+
+
+function generateBookedDates(){
+
+  const key =
+    currentYear +
+    "-" +
+    currentMonth;
+
+
+  if(bookedDates[key]){
+    return bookedDates[key];
+  }
+
+
+  const totalDays =
+    new Date(
+      currentYear,
+      currentMonth + 1,
+      0
+    ).getDate();
+
+
+  const today =
+    new Date();
+
+  today.setHours(
+    0,
+    0,
+    0,
+    0
+  );
+
+
+  const possibleDays = [];
+
+
+  for(
+    let day = 1;
+    day <= totalDays;
+    day++
+  ){
+
+    const date =
+      new Date(
+        currentYear,
+        currentMonth,
+        day
+      );
+
+
+    if(date >= today){
+
+      possibleDays.push(day);
+
+    }
+
+  }
+
+
+  possibleDays.sort(
+    () => Math.random() - .5
+  );
+
+
+  const result = {};
+
+
+  possibleDays
+    .slice(0,6)
+    .forEach(
+      (day,index) => {
+
+        result[day] =
+          bookedGirls[
+            index %
+            bookedGirls.length
+          ];
+
+      }
+    );
+
+
+  bookedDates[key] =
+    result;
+
+
+  return result;
+
+}
+
+
+/* =========================
+   DATE
+========================= */
+
+function formatDate(date){
+
+  return date.toLocaleDateString(
+    "en-US",
+    {
+      weekday:"long",
+      month:"long",
+      day:"numeric"
+    }
+  );
+
+}
+
+
+/* =========================
+   CALENDAR
+========================= */
+
+function renderCalendar(){
+
+  calendarGrid.innerHTML = "";
+
+
+  monthTitle.textContent =
+    months[currentMonth] +
+    " " +
+    currentYear;
+
+
+  const firstDay =
+    new Date(
+      currentYear,
+      currentMonth,
+      1
+    ).getDay();
+
+
+  const totalDays =
+    new Date(
+      currentYear,
+      currentMonth + 1,
+      0
+    ).getDate();
+
+
+  const today =
+    new Date();
+
+  today.setHours(
+    0,
+    0,
+    0,
+    0
+  );
+
+
+  const booked =
+    generateBookedDates();
+
+
+  for(
+    let i = 0;
+    i < firstDay;
+    i++
+  ){
+
+    const empty =
+      document.createElement(
+        "div"
+      );
+
+    empty.className =
+      "day empty";
+
+    calendarGrid.appendChild(
+      empty
+    );
+
+  }
+
+
+  for(
+    let day = 1;
+    day <= totalDays;
+    day++
+  ){
+
+    const cell =
+      document.createElement(
+        "div"
+      );
+
+
+    cell.className =
+      "day";
+
+
+    const number =
+      document.createElement(
+        "span"
+      );
+
+    number.className =
+      "day-number";
+
+    number.textContent =
+      day;
+
+
+    const date =
+      new Date(
+        currentYear,
+        currentMonth,
+        day
+      );
+
+
+    if(booked[day]){
+
+      cell.classList.add(
+        "booked"
+      );
+
+
+      const img =
+        document.createElement(
+          "img"
+        );
+
+      img.className =
+        "day-photo";
+
+      img.src =
+        booked[day].photo;
+
+      img.alt =
+        booked[day].name;
+
+
+      const name =
+        document.createElement(
+          "div"
+        );
+
+      name.className =
+        "day-girl-name";
+
+      name.textContent =
+        booked[day].name;
+
+
+      const redLine =
+        document.createElement(
+          "div"
+        );
+
+      redLine.className =
+        "red-line";
+
+
+      cell.appendChild(img);
+
+      cell.appendChild(name);
+
+      cell.appendChild(redLine);
+
+
+      cell.addEventListener(
+        "click",
+        () => {
+
+          openBookedDay(
+            date,
+            booked[day]
+          );
+
+        }
+      );
+
+    }else{
+
+      cell.classList.add(
+        "empty-date"
+      );
+
+
+      cell.addEventListener(
+        "click",
+        () => {
+
+          openAvailableGirls(
+            date
+          );
+
+        }
+      );
+
+    }
+
+
+    cell.appendChild(
+      number
+    );
+
+
+    if(date < today){
+
+      cell.style.opacity = ".25";
+
+      cell.style.pointerEvents =
+        "none";
+
+    }
+
+
+    calendarGrid.appendChild(
+      cell
+    );
+
+  }
+
+}
+
+
+/* =========================
+   BOOKED DAY
+========================= */
+
+function openBookedDay(
+  date,
+  girl
+){
+
+  detailPhoto.src =
+    girl.photo;
+
+  detailPhoto.alt =
+    girl.name;
+
+  detailName.textContent =
+    girl.name;
+
+
+  detailTime.textContent =
+    meetingTimes[
+      Math.floor(
+        Math.random() *
+        meetingTimes.length
+      )
+    ];
+
+
+  detailDate.textContent =
+    formatDate(date);
+
+
+  detailScreen.classList.add(
+    "open"
+  );
+
+}
+
+
+/* =========================
+   AVAILABLE GIRLS
+========================= */
+
+function openAvailableGirls(
+  date
+){
+
+  selectedDate =
+    date;
+
+  selectedGirl =
+    null;
+
+  selectedTime =
+    null;
+
+
+  availableDate.textContent =
+    formatDate(date);
+
+
+  document
+    .querySelectorAll(
+      ".girl-card"
+    )
+    .forEach(
+      card =>
+        card.classList.remove(
+          "selected"
+        )
+    );
+
+
+  chooseGirlButton.classList.remove(
+    "ready"
+  );
+
+
+  girlsScreen.classList.add(
+    "open"
+  );
+
+}
+
+
+/* =========================
+   GIRL SELECT
+========================= */
+
+document
+  .querySelectorAll(
+    ".girl-card"
+  )
+  .forEach(
+    card => {
+
+      card.addEventListener(
+        "click",
+        () => {
+
+          document
+            .querySelectorAll(
+              ".girl-card"
+            )
+            .forEach(
+              item =>
+                item.classList.remove(
+                  "selected"
+                )
+            );
+
+
+          card.classList.add(
+            "selected"
+          );
+
+
+          selectedGirl = {
+
+            name:
+              card.dataset.name,
+
+            photo:
+              card.dataset.photo
+
+          };
+
+
+          chooseGirlButton.classList.add(
+            "ready"
+          );
+
+        }
+      );
+
+    }
+  );
+
+
+/* =========================
+   CHOOSE TIME
+========================= */
+
+chooseGirlButton.addEventListener(
+  "click",
+  () => {
+
+    if(!selectedGirl){
+      return;
+    }
+
+
+    selectedGirlName.textContent =
+      selectedGirl.name +
+      " · " +
+      formatDate(
+        selectedDate
+      );
+
+
+    selectedTime = null;
+
+
+    document
+      .querySelectorAll(
+        ".time-button"
+      )
+      .forEach(
+        button =>
+          button.classList.remove(
+            "selected"
+          )
+      );
+
+
+    confirmMeeting.classList.remove(
+      "ready"
+    );
+
+
+    timeScreen.classList.add(
+      "open"
+    );
+
+  }
+);
+
+
+/* =========================
+   TIME SELECT
+========================= */
+
+document
+  .querySelectorAll(
+    ".time-button"
+  )
+  .forEach(
+    button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          document
+            .querySelectorAll(
+              ".time-button"
+            )
+            .forEach(
+              item =>
+                item.classList.remove(
+                  "selected"
+                )
+            );
+
+
+          button.classList.add(
+            "selected"
+          );
+
+
+          selectedTime =
+            button.textContent;
+
+
+          confirmMeeting.classList.add(
+            "ready"
+          );
+
+        }
+      );
+
+    }
+  );
+
+
+/* =========================
+   GET INSIGHTS
+========================= */
+
+confirmMeeting.addEventListener(
+  "click",
+  () => {
+
+    if(
+      !selectedGirl ||
+      !selectedDate ||
+      !selectedTime
+    ){
+
+      return;
+
+    }
+
+
+    detailPhoto.src =
+      selectedGirl.photo;
+
+    detailPhoto.alt =
+      selectedGirl.name;
+
+    detailName.textContent =
+      selectedGirl.name;
+
+    detailTime.textContent =
+      selectedTime;
+
+    detailDate.textContent =
+      formatDate(
+        selectedDate
+      );
+
+
+    timeScreen.classList.remove(
+      "open"
+    );
+
+    girlsScreen.classList.remove(
+      "open"
+    );
+
+    detailScreen.classList.add(
+      "open"
+    );
+
+  }
+);
+
+
+/* =========================
+   BACK
+========================= */
+
+document
+  .getElementById(
+    "backFromGirls"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      girlsScreen.classList.remove(
+        "open"
+      );
+
+    }
+  );
+
+
+document
+  .getElementById(
+    "backFromTime"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      timeScreen.classList.remove(
+        "open"
+      );
+
+    }
+  );
+
+
+document
+  .getElementById(
+    "backFromDetail"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      detailScreen.classList.remove(
+        "open"
+      );
+
+    }
+  );
+
+
+document
+  .getElementById(
+    "closeDetail"
+  )
+  .addEventListener(
+    "click",
+    () => {
+
+      detailScreen.classList.remove(
+        "open"
+      );
+
+    }
+  );
+
+
+/* =========================
+   MONTH NAVIGATION
+========================= */
+
+prevMonth.addEventListener(
+  "click",
+  () => {
+
+    currentMonth--;
+
+
+    if(currentMonth < 0){
+
+      currentMonth = 11;
+
+      currentYear--;
+
+    }
+
+
+    renderCalendar();
+
+  }
+);
+
+
+nextMonth.addEventListener(
+  "click",
+  () => {
+
+    currentMonth++;
+
+
+    if(currentMonth > 11){
+
+      currentMonth = 0;
+
+      currentYear++;
+
+    }
+
+
+    renderCalendar();
+
+  }
+);
+
+
+/* =========================
+   START
+========================= */
+
+renderCalendar();
+
+</script>
+
+</body>
+</html>
+
